@@ -189,3 +189,18 @@ function useCallback(callback, deps) {
 
 export { useMemo, useCallback }
 ```
+
+## 其他知识点
+
+### hooks 必须在顶层使用
+
+由于 react hooks 底层使用数组和索引在维护和查找对应的 hooks，所以必须确保每次组件重新渲染时，组件中的所有 hooks 顺序不会变。
+
+```js
+// 这样会导致组件中的 hooks 顺序发生错乱。
+if (condition) {
+  useEffect(() => {}, [])
+}
+```
+
+官方解释 [Only Call Hooks at the Top Level](https://reactjs.org/docs/hooks-rules.html#explanation)
