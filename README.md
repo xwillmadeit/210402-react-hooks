@@ -9,7 +9,7 @@ yarn start
 
 ## useState
 
-`src/useState.js`
+[src/useState.js](https://github.com/xwillmadeit/210402-react-hooks/blob/master/src/useState.js)
 
 ```js
 import reactDom from 'react-dom'
