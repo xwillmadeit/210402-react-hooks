@@ -1,5 +1,5 @@
 import React from 'react'
-import { useState, useMemo } from './use'
+import { useState, useMemo, useCallback, useEffect } from './use'
 
 function Number({ data, addNumber }) {
   console.log('Number render')
@@ -21,7 +21,16 @@ function App() {
   // let data = { number } // 这样写 Number 组件会重新渲染，因为 App 组件每次 render 都会生成新的 data 对象，Memo 使用的是浅比较
   let data = useMemo(() => ({ number }), [number]) // useMemo 可用于缓存对象
   // let addNumber = () => setNumber(number + 10) // 这样写 Number 组件会重新渲染，因为 App 组件每次 render 都会导致新的 addNumber 函数被创建
-  let addNumber = React.useCallback(() => setNumber(number + 10), [number]) // useCallback 可用于缓存函数
+  let addNumber = useCallback(() => setNumber(number + 10), [number]) // useCallback 可用于缓存函数
+
+  useEffect(() => {
+    console.log('did mount')
+  }, [])
+
+  useEffect(() => {
+    console.log('deps changed')
+  }, [number, count])
+
   return (
     <div className="App">
       <h1>count component</h1>

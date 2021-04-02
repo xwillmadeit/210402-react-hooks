@@ -190,6 +190,39 @@ function useCallback(callback, deps) {
 export { useMemo, useCallback }
 ```
 
+## useEffect
+
+```js
+import reactDom from 'react-dom'
+import App from './App'
+
+// 初始化 hooks 数组，用于存放所有 useState 的值
+const hooksState = []
+// 初始化 hooks 数组下标，从第一项开始对每个 useState 进行存放
+let hooksIndex = 0
+
+function useEffect(callback, deps) {
+  const lastDeps = hooksState[hooksIndex]
+  let hasChanged = true
+
+  if (lastDeps) {
+    hasChanged = deps.some((val, index) => !Object.is(val, lastDeps[index]))
+  }
+
+  // 第一次渲染或者依赖数组中有值变了，则执行 callback
+  if (hasChanged) {
+    hooksState[hooksIndex] = deps
+    callback()
+  }
+
+  hooksIndex++
+}
+
+export { useEffect }
+```
+
+PS：由于本例在每次 setState 时用了 reactDom.render 模拟组件重新渲染，会导致自定义的 useEffect 中的回调函数先于 render 执行，这显然是个 bug，这里暂时忽略。关于为什么 render 会先于 useEffect 执行的[解释](https://reactjs.org/docs/hooks-reference.html#useeffect)。
+
 ## 其他知识点
 
 ### hooks 必须在顶层使用

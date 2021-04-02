@@ -32,17 +32,15 @@ function useState(initialState) {
  * custom useMemo
  */
 function useMemo(factory, deps) {
-  // 第一次 render
-  if (!hooksState[hooksIndex]) {
-    const value = factory()
-    hooksState[hooksIndex] = [value, deps]
-    hooksIndex++
-    return value
+  const [lastValue, lastDeps] = hooksState[hooksIndex] || []
+  let hasChanged = true
+
+  if (hooksState[hooksIndex]) {
+    hasChanged = deps.some((val, index) => !Object.is(val, lastDeps[index]))
   }
 
-  // 非第一次 render，只要依赖数组里面有一个值发生改变，则重新执行 factory，否则用老的值
-  const [lastValue, lastDeps] = hooksState[hooksIndex]
-  if (deps.some((val, index) => !Object.is(val, lastDeps[index]))) {
+  // 第一次 render 或 依赖数组里面有一个值发生改变，则执行 factory，否则用老的值
+  if (hasChanged) {
     const value = factory()
     hooksState[hooksIndex] = [value, deps]
     hooksIndex++
@@ -57,16 +55,15 @@ function useMemo(factory, deps) {
  * custom useCallback
  */
 function useCallback(callback, deps) {
-  // 第一次 render
-  if (!hooksState[hooksIndex]) {
-    hooksState[hooksIndex] = [callback, deps]
-    hooksIndex++
-    return callback
+  const [lastCallback, lastDeps] = hooksState[hooksIndex] || []
+  let hasChanged = true
+
+  if (hooksState[hooksIndex]) {
+    hasChanged = deps.some((val, index) => !Object.is(val, lastDeps[index]))
   }
 
-  // 非第一次 render，只要依赖数组里面有一个值发生改变，则返回新的 callback，否则用老的值
-  const [lastCallback, lastDeps] = hooksState[hooksIndex]
-  if (deps.some((val, index) => !Object.is(val, lastDeps[index]))) {
+  // 第一次 render 或 依赖数组里面有一个值发生改变，则返回新的 callback，否则用老的值
+  if (hasChanged) {
     hooksState[hooksIndex] = [callback, deps]
     hooksIndex++
     return callback
@@ -76,4 +73,21 @@ function useCallback(callback, deps) {
   return lastCallback
 }
 
-export { useState, useMemo, useCallback }
+function useEffect(callback, deps) {
+  const lastDeps = hooksState[hooksIndex]
+  let hasChanged = true
+
+  if (lastDeps) {
+    hasChanged = deps.some((val, index) => !Object.is(val, lastDeps[index]))
+  }
+
+  // 第一次渲染或者依赖数组中有值变了，则执行 callback
+  if (hasChanged) {
+    hooksState[hooksIndex] = deps
+    callback()
+  }
+
+  hooksIndex++
+}
+
+export { useState, useMemo, useCallback, useEffect }
