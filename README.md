@@ -204,3 +204,8 @@ if (condition) {
 ```
 
 官方解释 [Only Call Hooks at the Top Level](https://reactjs.org/docs/hooks-rules.html#explanation)
+
+### 函数组件重新 render 导致组件内定义的 function 每次重新创建是否性能不佳？
+
+函数组件不需要像 class 组件那样创建实例，绑定事件。在现代浏览器中该情况带来的性能消耗可忽略不计。可使用 useCallback/useMemo 等优化
+[Are Hooks slow because of creating functions in render?](https://reactjs.org/docs/hooks-faq.html#are-hooks-slow-because-of-creating-functions-in-render)。
