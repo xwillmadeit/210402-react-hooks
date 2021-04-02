@@ -7,9 +7,9 @@ yarn
 yarn start
 ```
 
-## useState
+源码在 [src/use.js](https://github.com/xwillmadeit/210402-react-hooks/blob/master/src/use.js)
 
-[src/useState.js](https://github.com/xwillmadeit/210402-react-hooks/blob/master/src/useState.js)
+## useState
 
 ```js
 import reactDom from 'react-dom'
@@ -44,7 +44,7 @@ export default useState
 
 相关资料：[Getting Closure on React Hooks](https://www.youtube.com/watch?v=KJP1E-Y-xyo)
 
-## useMemo/useCallback
+## React.memo/useMemo/useCallback
 
 思考这个组件有什么问题？
 
@@ -126,4 +126,66 @@ function App() {
 }
 
 export default App
+```
+
+手写 useMemo + useCallback
+
+```js
+import reactDom from 'react-dom'
+import App from './App'
+
+// 初始化 hooks 数组，用于存放所有 useState 的值
+const hooksState = []
+// 初始化 hooks 数组下标，从第一项开始对每个 useState 进行存放
+let hooksIndex = 0
+/**
+ * custom useMemo
+ */
+function useMemo(factory, deps) {
+  // 第一次 render
+  if (!hooksState[hooksIndex]) {
+    const value = factory()
+    hooksState[hooksIndex] = [value, deps]
+    hooksIndex++
+    return value
+  }
+
+  // 非第一次 render，只要依赖数组里面有一个值发生改变，则重新执行 factory，否则用老的值
+  const [lastValue, lastDeps] = hooksState[hooksIndex]
+  // 这里使用 Object.is 原因是比 === 更为严谨，Object.is 和 === 的区别在 Object.is 认为 +0 和 -0 不相等，NaN 和 NaN 相等。
+  if (deps.some((val, index) => !Object.is(val, lastDeps[index]))) {
+    const value = factory()
+    hooksState[hooksIndex] = [value, deps]
+    hooksIndex++
+    return value
+  }
+
+  hooksIndex++
+  return lastValue
+}
+
+/**
+ * custom useCallback
+ */
+function useCallback(callback, deps) {
+  // 第一次 render
+  if (!hooksState[hooksIndex]) {
+    hooksState[hooksIndex] = [callback, deps]
+    hooksIndex++
+    return callback
+  }
+
+  // 非第一次 render，只要依赖数组里面有一个值发生改变，则返回新的 callback，否则用老的值
+  const [lastCallback, lastDeps] = hooksState[hooksIndex]
+  if (deps.some((val, index) => !Object.is(val, lastDeps[index]))) {
+    hooksState[hooksIndex] = [callback, deps]
+    hooksIndex++
+    return callback
+  }
+
+  hooksIndex++
+  return lastCallback
+}
+
+export { useMemo, useCallback }
 ```
