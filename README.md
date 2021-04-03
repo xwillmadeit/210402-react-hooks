@@ -15,28 +15,28 @@ yarn start
 import render from './render'
 
 // 初始化 hooks 数组，用于存放所有 useState 的值
-const hooksState = []
+const hooks = []
 // 初始化 hooks 数组下标，从第一项开始对每个 useState 进行存放
-let hooksIndex = 0
+let index = 0
 
 /**
  * custom useState
  */
 function useState(initialState) {
-  hooksState[hooksIndex] = hooksState[hooksIndex] || initialState
+  hooks[index] = hooks[index] || initialState
   // 暂存当前 index 值，给 setState 使用
-  const currentIndex = hooksIndex
+  const currentIndex = index
 
   function setState(newState) {
-    // 调用 setState 时需要找到 hooksState 数组中对应的 index 进行操作，这个 index 是 useState 时决定的
-    hooksState[currentIndex] = newState
+    // 调用 setState 时需要找到 hooks 数组中对应的 index 进行操作，这个 index 是 useState 时决定的
+    hooks[currentIndex] = newState
     // 每次调用 setState，函数组件会重新运行，会重新走 useState，此时需要重置 index，从头开始
-    hooksIndex = 0
+    index = 0
     // 模拟组件重新渲染
     render()
   }
 
-  return [hooksState[hooksIndex++], setState]
+  return [hooks[index++], setState]
 }
 
 export { useState }
@@ -134,30 +134,30 @@ export default App
 import render from './render'
 
 // 初始化 hooks 数组，用于存放所有 useState 的值
-const hooksState = []
+const hooks = []
 // 初始化 hooks 数组下标，从第一项开始对每个 useState 进行存放
-let hooksIndex = 0
+let index = 0
 
 /**
  * custom useMemo
  */
 function useMemo(factory, deps) {
-  const [lastValue, lastDeps] = hooksState[hooksIndex] || []
+  const [lastValue, lastDeps] = hooks[index] || []
   let hasChanged = true
 
-  if (hooksState[hooksIndex]) {
+  if (hooks[index]) {
     hasChanged = deps.some((val, index) => !Object.is(val, lastDeps[index]))
   }
 
   // 第一次 render 或 依赖数组里面有一个值发生改变，则执行 factory，否则用老的值
   if (hasChanged) {
     const value = factory()
-    hooksState[hooksIndex] = [value, deps]
-    hooksIndex++
+    hooks[index] = [value, deps]
+    index++
     return value
   }
 
-  hooksIndex++
+  index++
   return lastValue
 }
 
@@ -165,21 +165,21 @@ function useMemo(factory, deps) {
  * custom useCallback
  */
 function useCallback(callback, deps) {
-  const [lastCallback, lastDeps] = hooksState[hooksIndex] || []
+  const [lastCallback, lastDeps] = hooks[index] || []
   let hasChanged = true
 
-  if (hooksState[hooksIndex]) {
+  if (hooks[index]) {
     hasChanged = deps.some((val, index) => !Object.is(val, lastDeps[index]))
   }
 
   // 第一次 render 或 依赖数组里面有一个值发生改变，则返回新的 callback，否则用老的值
   if (hasChanged) {
-    hooksState[hooksIndex] = [callback, deps]
-    hooksIndex++
+    hooks[index] = [callback, deps]
+    index++
     return callback
   }
 
-  hooksIndex++
+  index++
   return lastCallback
 }
 
@@ -192,12 +192,12 @@ export { useMemo, useCallback }
 import render from './render'
 
 // 初始化 hooks 数组，用于存放所有 useState 的值
-const hooksState = []
+const hooks = []
 // 初始化 hooks 数组下标，从第一项开始对每个 useState 进行存放
-let hooksIndex = 0
+let index = 0
 
 function useEffect(callback, deps) {
-  const lastDeps = hooksState[hooksIndex]
+  const lastDeps = hooks[index]
   let hasChanged = true
 
   if (lastDeps) {
@@ -206,11 +206,11 @@ function useEffect(callback, deps) {
 
   // 第一次渲染或者依赖数组中有值变了，则执行 callback
   if (hasChanged) {
-    hooksState[hooksIndex] = deps
+    hooks[index] = deps
     callback()
   }
 
-  hooksIndex++
+  index++
 }
 
 export { useEffect }
@@ -224,13 +224,13 @@ PS：这里 useEffect 的实现会导致内部回调函数先于 render 执行�
 import render from './render'
 
 // 初始化 hooks 数组，用于存放所有 useState 的值
-const hooksState = []
+const hooks = []
 // 初始化 hooks 数组下标，从第一项开始对每个 useState 进行存放
-let hooksIndex = 0
+let index = 0
 
 function useRef(initialValue) {
-  hooksState[hooksIndex] = hooksState[hooksIndex] || { current: initialValue }
-  return hooksState[hooksIndex++]
+  hooks[index] = hooks[index] || { current: initialValue }
+  return hooks[index++]
 }
 
 export { useRef }
@@ -242,15 +242,14 @@ export { useRef }
 import render from './render'
 
 // 初始化 hooks 数组，用于存放所有 useState 的值
-const hooksState = []
+const hooks = []
 // 初始化 hooks 数组下标，从第一项开始对每个 useState 进行存放
-let hooksIndex = 0
+let index = 0
 
 function useContext(context) {
-  hooksState[hooksIndex] =
-    hooksState[hooksIndex] || context.Consumer._currentValue
+  hooks[index] = hooks[index] || context.Consumer._currentValue
 
-  return hooksState[hooksIndex++]
+  return hooks[index++]
 }
 
 export { useContext }
@@ -262,25 +261,25 @@ export { useContext }
 import render from './render'
 
 // 初始化 hooks 数组，用于存放所有 useState 的值
-const hooksState = []
+const hooks = []
 // 初始化 hooks 数组下标，从第一项开始对每个 useState 进行存放
-let hooksIndex = 0
+let index = 0
 
 function useReducer(reducer, initialArg, init) {
-  if (!hooksState[hooksIndex]) {
+  if (!hooks[index]) {
     let value = init ? init(initialArg) : initialArg
-    const currentIndex = hooksIndex
+    const currentIndex = index
     const dispatch = function (data) {
       value = reducer(value, data)
-      hooksState[currentIndex] = [value, dispatch]
-      hooksIndex = 0
+      hooks[currentIndex] = [value, dispatch]
+      index = 0
       // 模拟组件重新渲染
       render()
     }
-    hooksState[hooksIndex] = [value, dispatch]
+    hooks[index] = [value, dispatch]
   }
 
-  return hooksState[hooksIndex++]
+  return hooks[index++]
 }
 
 export { useReducer }
