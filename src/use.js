@@ -1,5 +1,4 @@
-import reactDom from 'react-dom'
-import App from './App'
+import render from './render'
 
 // 初始化 hooks 数组，用于存放所有 useState 的值
 const hooksState = []
@@ -10,7 +9,7 @@ let hooksIndex = 0
  * custom useState
  */
 function useState(initialState) {
-  const state = hooksState[hooksIndex] || initialState
+  hooksState[hooksIndex] = hooksState[hooksIndex] || initialState
   // 暂存当前 index 值，给 setState 使用
   const currentIndex = hooksIndex
 
@@ -20,12 +19,10 @@ function useState(initialState) {
     // 每次调用 setState，函数组件会重新运行，会重新走 useState，此时需要重置 index，从头开始
     hooksIndex = 0
     // 模拟组件重新渲染
-    reactDom.render(<App />, document.getElementById('root'))
+    render()
   }
 
-  hooksIndex++
-
-  return [state, setState]
+  return [hooksState[hooksIndex++], setState]
 }
 
 /**
@@ -90,4 +87,41 @@ function useEffect(callback, deps) {
   hooksIndex++
 }
 
-export { useState, useMemo, useCallback, useEffect }
+function useRef(initialValue) {
+  hooksState[hooksIndex] = hooksState[hooksIndex] || { current: initialValue }
+  return hooksState[hooksIndex++]
+}
+
+function useContext(context) {
+  hooksState[hooksIndex] =
+    hooksState[hooksIndex] || context.Consumer._currentValue
+
+  return hooksState[hooksIndex++]
+}
+
+function useReducer(reducer, initialArg, init) {
+  if (!hooksState[hooksIndex]) {
+    let value = init ? init(initialArg) : initialArg
+    const currentIndex = hooksIndex
+    const dispatch = function (data) {
+      value = reducer(value, data)
+      hooksState[currentIndex] = [value, dispatch]
+      hooksIndex = 0
+      // 模拟组件重新渲染
+      render()
+    }
+    hooksState[hooksIndex] = [value, dispatch]
+  }
+
+  return hooksState[hooksIndex++]
+}
+
+export {
+  useState,
+  useMemo,
+  useCallback,
+  useEffect,
+  useRef,
+  useContext,
+  useReducer,
+}

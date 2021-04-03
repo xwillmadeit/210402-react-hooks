@@ -1,5 +1,32 @@
 import React from 'react'
-import { useState, useMemo, useCallback, useEffect } from './use'
+import {
+  useState,
+  useMemo,
+  useCallback,
+  useEffect,
+  useRef,
+  useContext,
+  useReducer,
+} from './use'
+import Context from './context'
+import TestReducer from './TestReducer'
+
+function init(initialValue) {
+  return { reducerValue: initialValue }
+}
+
+function reducer(state, action) {
+  switch (action.type) {
+    case 'increment':
+      return { reducerValue: state.reducerValue + 1 }
+    case 'decrement':
+      return { reducerValue: state.reducerValue - 1 }
+    case 'reset':
+      return init(action.payload)
+    default:
+      throw new Error()
+  }
+}
 
 function Number({ data, addNumber }) {
   console.log('Number render')
@@ -31,8 +58,17 @@ function App() {
     console.log('deps changed')
   }, [number, count])
 
+  const inputRef = useRef(null)
+  const context = useContext(Context)
+
+  const [reducerState, dispatch] = useReducer(reducer, 100, init)
+
   return (
     <div className="App">
+      <h1>Greet from Context：{context.greet}</h1>
+
+      <hr />
+
       <h1>count component</h1>
       <h2>{count}</h2>
       <button onClick={() => setCount(count + 1)}>add + 1</button>
@@ -40,6 +76,20 @@ function App() {
       <hr />
 
       <Number data={data} addNumber={addNumber} />
+
+      <hr />
+
+      <h1>test useRef</h1>
+      <input ref={inputRef} type="text" />
+      <button onClick={() => inputRef.current.focus()}>focus input node</button>
+
+      <hr />
+
+      <TestReducer
+        state={reducerState}
+        increment={() => dispatch({ type: 'increment' })}
+        decrement={() => dispatch({ type: 'decrement' })}
+      />
     </div>
   )
 }
